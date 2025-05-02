@@ -1,0 +1,192 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+``` {r imports}
+library(tidyverse)
+library(car)
+library(ggfortify)
+```
+
+### RLab
+
+##### READING DATAFILES & SETTING VARIABLES
+
+```{r import.txt}
+list.files('~') # list files in home dir
+d1 = read.table('RTestData.txt', header = TRUE) # read in txt file as a table
+d1 # look at d1 table
+fuso # object not found
+d1$fuso # gets values in fuso column of table d1
+attach(d1)
+fuso # now that table is attached, can output this column's values
+
+
+d3 = read.table('RTestData.txt') # did it without header = TRUE to use V1
+attach(d3)
+V1
+```
+
+```{r hist.qq}
+hist(d1$strep) # create histogram of strep data
+qqnorm(d1$strep) # not very linear
+lstrep <- log(d1$strep)
+qqnorm(lstrep) # a little better
+hist(lstrep)
+```
+
+```{r t.test}
+t.test(d1$strep, d1$fuso)
+t.test(lstrep, d1$fuso)
+```
+
+```{r import.csv}
+d2 = read.csv('primer-1.csv') # import csv
+attach(d2)
+d2 # show dataframe
+d2$Plate.Name # Plate.Name is V1?
+```
+
+##### SORTING SUBSETTING DATA
+
+```{r subset}
+newdata = d1[order(time),] # rearranges d1 table based on time column
+newdata
+
+time1 = subset(d1, time=='1') # grabs rows where time = 1
+time1
+```
+
+##### WRITING FILES
+
+```{r}
+write.csv(time1,"time1.csv") # writes data of time1 into a csv
+```
+
+### RLab1
+
+##### airquality
+```{r airQual}
+# reading in dataset
+data("airquality")
+
+# 1) showing top of dataset
+head(airquality)
+
+# 2) attaching dataframe
+attach(airquality)
+
+# 3a) qqnorm 
+par(mfrow=c(2,2))
+qqnorm(Ozone)
+qqnorm(Solar.R)
+qqnorm(Wind)
+qqnorm(Temp)
+
+# 3b) histogram
+par(mfrow=c(2,2))
+hist(Ozone)
+hist(Solar.R)
+hist(Wind)
+hist(Temp)
+
+# 3c) stats test
+summary(Ozone)
+sd(Ozone, na.rm=TRUE)
+var(Ozone, na.rm=TRUE)
+
+# 4/5) transformation to normalize
+# tried scaling, but wasn't sure if it did much on 
+# Ozone and Solar to normalize
+hist(scale(Ozone))
+hist(scale(Solar.R))
+hist(scale(Wind))
+hist(scale(Temp))
+
+normWind <- scale(Wind)
+normTemp <- scale(Temp)
+
+# 6) scatterplots of all non-categorical variables
+par(mfrow=c(2,3))
+plot(Ozone, Solar.R,
+     main = "Correlation between\nOzone and Solar.R")
+plot(Ozone, normWind,
+     main = "Correlation between\nOzone and Wind")
+plot(Ozone, normTemp,
+     main = "Correlation between\nOzone and Temperature")
+plot(Solar.R, normWind,
+     main = "Correlation between\nSolar.R and Temperature")
+plot(Solar.R, normTemp,
+     main = "Correlation between\nSolar.R and Temperature")
+plot(normWind, normTemp,
+     main = "Correlation between\nWind and Temperature")
+
+# 7) testing pairs of correlations
+cor(airquality, use="complete.obs")
+
+# 8) adjusting p-value using fdr and bonferroni
+# think this was how it's done in the book?
+model <- lm(Temp ~ Wind)
+outlierTest(model)
+
+# Performaing anova on temp as a function of month
+oneway.test(Temp ~ Month)
+kruskal.test(Temp ~ Month)
+
+# Correlate Ozone with Solar.R, Wind with Temp
+par(mfrow=c(1,1))
+cor(Ozone,Solar.R, use="complete.obs")
+plot(Ozone,Solar.R)
+
+cor(Wind,Temp, use="complete.obs")
+plot(Wind,Temp)
+```
+
+##### ToothGRowth
+```{r tooth}
+# reading in dataset
+data("ToothGrowth")
+
+# 1) showing top of dataset
+head(ToothGrowth)
+
+# 2) attaching dataframe
+attach(ToothGrowth)
+
+# 3a) qqnorm 
+qqnorm(len)
+
+# 3b) histogram
+hist(len)
+
+# 3c) stats test
+summary(len)
+sd(len, na.rm=TRUE)
+var(len, na.rm=TRUE)
+
+# 4/5) transformation to normalize
+hist(scale(len))
+
+# 6) scatterplots of all non-categorical variables
+plot(dose, len)
+plot(len)
+
+# 7) testing pairs of correlations
+cor(len,dose)
+
+# 8) adjusting p-value using fdr and bonferroni
+model <- lm(len ~ dose)
+outlierTest(model) # returned NA? when looknig up, means non-significant?
+
+# Perform an ANOVA with supp as the factor.
+oneway.test(len ~ supp)
+kruskal.test(len ~ supp)
+
+# Perform a linear regression of len with dose
+model <- lm(len ~ dose)
+model
+autoplot(model)
+```
